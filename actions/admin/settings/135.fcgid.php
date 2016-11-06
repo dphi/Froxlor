@@ -104,7 +104,15 @@ return array(
 					'type' => 'int',
 					'default' => 30,
 					'save_method' => 'storeSettingField'
-					)
+					),
+				'system_mod_fcgid_system_prefix' => array(
+					'label' => $lng['serversettings']['mod_fcgid']['username_prefix'],
+					'settinggroup' => 'system',
+					'varname' => 'mod_fcgid_system_prefix',
+					'type' => 'string',
+					'default' => '',
+					'save_method' => 'storeSettingField'
+					),
 				)
 			)
 		)
