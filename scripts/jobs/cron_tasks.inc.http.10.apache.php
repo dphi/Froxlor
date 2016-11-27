@@ -750,10 +750,38 @@ class apache extends HttpConfigBase
 		return $vhost_filename;
 	}
 
+
+	/**
+	 * This function returns only the vhost specific path, php, ... configuration
+	 */
+	protected function getVhostBody($domain, $ssl_vhost = false) {
+		$vhost_content = '';
+		mkDirWithCorrectOwnership($domain['customerroot'], $domain['documentroot'], $domain['guid'], $domain['guid'], true, true);
+		$vhost_content .= $this->getWebroot($domain);
+		if ($this->_deactivated == false) {
+			$vhost_content .= $this->composePhpOptions($domain, $ssl_vhost);
+			$vhost_content .= $this->getStats($domain);
+		}
+		$vhost_content .= $this->getLogfiles($domain);
+
+		if ($domain['specialsettings'] != '') {
+			$vhost_content .= $this->processSpecialConfigTemplate($domain['specialsettings'], $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
+		}
+		if ($_vhost_content != '') {
+			$vhost_content .= $_vhost_content;
+		}
+
+		if (Settings::Get('system.default_vhostconf') != '') {
+			$vhost_content .= $this->processSpecialConfigTemplate(Settings::Get('system.default_vhostconf'), $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
+		}
+
+		return $vhost_content;
+	}
+
 	/**
 	 * We compose the virtualhost entry for one domain
 	 */
-	protected function getVhostContent($domain, $ssl_vhost = false)
+	protected function getVhostContent($domain, $body, $ssl_vhost = false)
 	{
 		if ($ssl_vhost === true && ($domain['ssl_redirect'] != '1' && $domain['ssl'] != '1')) {
 			return '';
@@ -927,25 +955,8 @@ class apache extends HttpConfigBase
 			$vhost_content .= '  </IfModule>' . "\n";
 		} else {
 
-			mkDirWithCorrectOwnership($domain['customerroot'], $domain['documentroot'], $domain['guid'], $domain['guid'], true, true);
-			$vhost_content .= $this->getWebroot($domain);
-			if ($this->_deactivated == false) {
-				$vhost_content .= $this->composePhpOptions($domain, $ssl_vhost);
-				$vhost_content .= $this->getStats($domain);
-			}
-			$vhost_content .= $this->getLogfiles($domain);
-
-			if ($domain['specialsettings'] != '') {
-				$vhost_content .= $this->processSpecialConfigTemplate($domain['specialsettings'], $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
-			}
-
-			if ($_vhost_content != '') {
-				$vhost_content .= $_vhost_content;
-			}
-
-			if (Settings::Get('system.default_vhostconf') != '') {
-				$vhost_content .= $this->processSpecialConfigTemplate(Settings::Get('system.default_vhostconf'), $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
-			}
+			// add the body of this vhost
+			$vhost_content .= $body;
 		}
 
 		$vhost_content .= '</VirtualHost>' . "\n";
@@ -969,17 +980,103 @@ class apache extends HttpConfigBase
 
 			if ($domain['deactivated'] != '1' || Settings::Get('system.deactivateddocroot') != '') {
 				// Create vhost without ssl
-				$this->virtualhosts_data[$vhosts_filename] .= $this->getVhostContent($domain, false);
+				$this->virtualhosts_data[$vhosts_filename] .= $this->getVhostContent($domain, $this->getVhostBody($domain), false);
 
 				if ($domain['ssl'] == '1' || $domain['ssl_redirect'] == '1') {
 					// Adding ssl stuff if enabled
 					$vhosts_filename_ssl = $this->getVhostFilename($domain, true);
 					$this->virtualhosts_data[$vhosts_filename_ssl] = '# Domain ID: ' . $domain['id'] . ' (SSL) - CustomerID: ' . $domain['customerid'] . ' - CustomerLogin: ' . $domain['loginname'] . "\n";
-					$this->virtualhosts_data[$vhosts_filename_ssl] .= $this->getVhostContent($domain, true);
+					$this->virtualhosts_data[$vhosts_filename_ssl] .= $this->getVhostContent($domain, $this->getVhostBody($domain), true);
 				}
 			} else {
 				$this->virtualhosts_data[$vhosts_filename] .= '# Customer deactivated and a docroot for deactivated users hasn\'t been set.' . "\n";
 			}
+		}
+	}
+
+	protected function _createEmailAutodiscoverVirtualHost($domain) {
+		$this->virtualhosts_data[$vhosts_filename] = '# Domain ID: ' . $domain['id'] . ' - CustomerID: ' . $domain['customerid'] . ' - CustomerLogin: ' . $domain['loginname'] . "\n";
+		$vhosts_filename = $this->getVhostFilename($domain);
+
+		$body .= '   <IfModule mod_wsgi.c>';
+		$body .= '    WSGIScriptAlias /Autodiscover/Autodiscover.xml /usr/lib/python2.7/dist-packages/automx_wsgi.py';
+		$body .= '    WSGIScriptAlias /autodiscover/autodiscover.xml /usr/lib/python2.7/dist-packages/automx_wsgi.py';
+		$body .= '    WSGIScriptAlias /mobileconfig /usr/lib/python2.7/dist-packages/automx_wsgi.py';
+		$body .= '    <Directory "/usr/lib/python2.7/dist-packages">';
+		$body .= '      Order allow,deny';
+		$body .= '      Allow from all';
+		$body .= '    </Directory>';
+		$body .= '  </IfModule>';
+
+		if ($domain['deactivated'] != '1' || Settings::Get('system.deactivateddocroot') != '') {
+			// Create vhost without ssl
+			$vhost_content = $this->getVhostContent($domain, $body, false);
+			$this->virtualhosts_data[$vhosts_filename] .= $vhost_content;
+
+			if ($domain['ssl'] == '1' || $domain['ssl_redirect'] == '1') {
+				// Adding ssl stuff if enabled
+				$vhosts_filename_ssl = $this->getVhostFilename($domain, true);
+				$this->virtualhosts_data[$vhosts_filename_ssl] = '# Domain ID: ' . $domain['id'] . ' (SSL) - CustomerID: ' . $domain['customerid'] . ' - CustomerLogin: ' . $domain['loginname'] . "\n";
+				$vhost_content = $this->getVhostContent($domain, $body, true);
+				$vhost_content = str_replace($domain, 'autodiscover.' . $domain, $vhost_content);
+				$this->virtualhosts_data[$vhosts_filename_ssl] .= $vhost_content;
+			}
+		} else {
+			$this->virtualhosts_data[$vhosts_filename] .= '# Customer deactivated and a docroot for deactivated users hasn\'t been set.' . "\n";
+		}
+	}
+
+	protected function _createEmailAutoconfigVirtualHost($domain) {
+		$vhosts_filename = $this->getVhostFilename($domain);
+		$this->virtualhosts_data[$vhosts_filename] = '# Domain ID: ' . $domain['id'] . ' - CustomerID: ' . $domain['customerid'] . ' - CustomerLogin: ' . $domain['loginname'] . "\n";
+		
+		$body = '';
+		$body .= '   <IfModule mod_wsgi.c>';
+		$body .= '     WSGIScriptAlias /mail/config-v1.1.xml /usr/lib/python2.7/dist-packages/automx_wsgi.py';
+		$body .= '    <Directory "/usr/lib/python2.7/dist-packages">';
+		$body .= '      Order allow,deny';
+		$body .= '      Allow from all';
+		$body .= '    </Directory>';
+		$body .= '  </IfModule>';
+
+		if ($domain['deactivated'] != '1' || Settings::Get('system.deactivateddocroot') != '') {
+			// Create vhost without ssl
+			$vhost_content = $this->getVhostContent($domain, $body, false);
+			$vhost_content = str_replace($domain, 'autoconfig.' . $domain, $vhost_content);
+			$this->virtualhosts_data[$vhosts_filename] .= $vhost_content;
+
+			if ($domain['ssl'] == '1' || $domain['ssl_redirect'] == '1') {
+				// Adding ssl stuff if enabled
+				$vhosts_filename_ssl = $this->getVhostFilename($domain, true);
+				$this->virtualhosts_data[$vhosts_filename_ssl] = '# Domain ID: ' . $domain['id'] . ' (SSL) - CustomerID: ' . $domain['customerid'] . ' - CustomerLogin: ' . $domain['loginname'] . "\n";
+				$vhost_content = $this->getVhostContent($domain, $body, true);
+				$vhost_content = str_replace($domain, 'autoconfig.' . $domain, $vhost_content);
+				$this->virtualhosts_data[$vhosts_filename_ssl] .= $vhost_content;
+			}
+		} else {
+			$this->virtualhosts_data[$vhosts_filename] .= '# Customer deactivated and a docroot for deactivated users hasn\'t been set.' . "\n";
+		}
+	}
+
+
+	/**
+	 * We compose the virtual host entries for the autoconfig/ autodiscover domains
+	 */
+	public function createEmailAutodiscoverVirtualHosts() {
+
+		$domains = WebserverBase::getVhostsToCreate();
+		foreach ($domains as $domain) {
+			if ($domain['email_autodiscovery'] == 0 || $domain['isemaildomain'] == 0) {
+				continue;
+			}
+
+			$this->logger->logAction(CRON_ACTION, LOG_INFO, 'apache::createVirtualHosts: creating vhost containers for domain email autodiscovery' . $domain['id'] . ', customer ' . $domain['loginname']);
+
+			// Autodiscover
+			$this->_createEmailAutodiscoverVirtualHost($domain);
+
+			// Autoconfig
+			$this->_createEmailAutoconfigVirtualHost($domain);
 		}
 	}
 

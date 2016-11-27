@@ -80,6 +80,7 @@ while ($row = $result_tasks_stmt->fetch(PDO::FETCH_ASSOC)) {
 		if (isset($webserver)) {
 			$webserver->createIpPort();
 			$webserver->createVirtualHosts();
+			$webserver->createEmailAutodiscoverVirtualHosts();
 			$webserver->createFileDirOptions();
 			$webserver->writeConfigs();
 			$webserver->createOwnVhostStarter();
