@@ -362,7 +362,7 @@ return array(
 						)
 					),
 					'emailautodiscover' => array(
-						'label' => $lng['admin']['emaildiscover'],
+						'label' => $lng['admin']['emailautodiscover'],
 						'type' => 'checkbox',
 						'values' => array(
 							array ('label' => $lng['panel']['yes'], 'value' => '1')
