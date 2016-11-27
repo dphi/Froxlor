@@ -1792,7 +1792,6 @@ if ($page == 'domains' || $page == 'overview') {
 				$update_data['zonefile'] = $zonefile;
 				$update_data['wwwserveralias'] = $wwwserveralias;
 				$update_data['iswildcarddomain'] = $iswildcarddomain;
-				$update_data['phpenabled'] = $phpenabled;
 				$update_data['openbasedir'] = $openbasedir;
 				$update_data['speciallogfile'] = $speciallogfile;
 				$update_data['phpsettingid'] = $phpsettingid;
@@ -1825,7 +1824,6 @@ if ($page == 'domains' || $page == 'overview') {
 					`zonefile` = :zonefile,
 					`wwwserveralias` = :wwwserveralias,
 					`iswildcarddomain` = :iswildcarddomain,
-					`phpenabled` = :phpenabled,
 					`openbasedir` = :openbasedir,
 					`speciallogfile` = :speciallogfile,
 					`phpsettingid` = :phpsettingid,
