@@ -335,6 +335,11 @@ if ($page == 'domains' || $page == 'overview') {
 					$email_only = intval($_POST['email_only']);
 				}
 
+				$email_autodiscover = 0;
+				if (isset($_POST['email_autodiscover'])) {
+					$email_only = intval($_POST['email_autodiscover']);
+				}
+
 				$serveraliasoption = 0;
 				if (isset($_POST['selectserveralias'])) {
 					$serveraliasoption = intval($_POST['selectserveralias']);
@@ -709,6 +714,7 @@ if ($page == 'domains' || $page == 'overview') {
 
 				if ($email_only == '1') {
 					$isemaildomain = '1';
+					$email_autodiscover = '0';
 				} else {
 					$email_only = '0';
 				}
@@ -761,6 +767,7 @@ if ($page == 'domains' || $page == 'overview') {
 						'isbinddomain' => $isbinddomain,
 						'isemaildomain' => $isemaildomain,
 						'email_only' => $email_only,
+						'email_autodiscover' => $email_autodiscover,
 						'subcanemaildomain' => $subcanemaildomain,
 						'caneditdomain' => $caneditdomain,
 						'zonefile' => $zonefile,
@@ -816,6 +823,7 @@ if ($page == 'domains' || $page == 'overview') {
 						'isbinddomain' => $isbinddomain,
 						'isemaildomain' => $isemaildomain,
 						'email_only' => $email_only,
+						'email_autodiscover' => $email_autodiscover,
 						'subcanemaildomain' => $subcanemaildomain,
 						'caneditdomain' => $caneditdomain,
 						'openbasedir' => $openbasedir,
@@ -852,6 +860,7 @@ if ($page == 'domains' || $page == 'overview') {
 						`isbinddomain` = :isbinddomain,
 						`isemaildomain` = :isemaildomain,
 						`email_only` = :email_only,
+						`email_autodiscover` = :email_autodiscover,
 						`subcanemaildomain` = :subcanemaildomain,
 						`caneditdomain` = :caneditdomain,
 						`openbasedir` = :openbasedir,
@@ -1266,6 +1275,11 @@ if ($page == 'domains' || $page == 'overview') {
 					$email_only = intval($_POST['email_only']);
 				}
 
+				$email_autodiscover = 0;
+				if (isset($_POST['email_autodiscover'])) {
+					$email_autodiscover = intval($_POST['email_autodiscover']);
+				}
+
 				$serveraliasoption = '2';
 				if ($result['iswildcarddomain'] == '1') {
 					$serveraliasoption = '0';
@@ -1488,6 +1502,7 @@ if ($page == 'domains' || $page == 'overview') {
 
 				if ($email_only == '1') {
 					$isemaildomain = '1';
+					$email_autodiscover = '0';
 				} else {
 					$email_only = '0';
 				}
@@ -1576,6 +1591,7 @@ if ($page == 'domains' || $page == 'overview') {
 					'isbinddomain' => $isbinddomain,
 					'isemaildomain' => $isemaildomain,
 					'email_only' => $email_only,
+					'email_autodiscover' => $email_autodiscover,
 					'subcanemaildomain' => $subcanemaildomain,
 					'caneditdomain' => $caneditdomain,
 					'zonefile' => $zonefile,
@@ -1617,7 +1633,7 @@ if ($page == 'domains' || $page == 'overview') {
 				$wwwserveralias = ($serveraliasoption == '1') ? '1' : '0';
 				$iswildcarddomain = ($serveraliasoption == '0') ? '1' : '0';
 
-				if ($documentroot != $result['documentroot'] || $ssl_redirect != $result['ssl_redirect'] || $wwwserveralias != $result['wwwserveralias'] || $iswildcarddomain != $result['iswildcarddomain'] || $openbasedir != $result['openbasedir'] || $phpsettingid != $result['phpsettingid'] || $mod_fcgid_starter != $result['mod_fcgid_starter'] || $mod_fcgid_maxrequests != $result['mod_fcgid_maxrequests'] || $specialsettings != $result['specialsettings'] || $aliasdomain != $result['aliasdomain'] || $issubof != $result['ismainbutsubto'] || $email_only != $result['email_only'] || ($speciallogfile != $result['speciallogfile'] && $speciallogverified == '1') || $letsencrypt != $result['letsencrypt'] || $hsts_maxage != $result['hsts'] || $hsts_sub != $result['hsts_sub'] || $hsts_preload != $result['hsts_preload']) {
+				if ($documentroot != $result['documentroot'] || $ssl_redirect != $result['ssl_redirect'] || $wwwserveralias != $result['wwwserveralias'] || $iswildcarddomain != $result['iswildcarddomain'] || $openbasedir != $result['openbasedir'] || $phpsettingid != $result['phpsettingid'] || $mod_fcgid_starter != $result['mod_fcgid_starter'] || $mod_fcgid_maxrequests != $result['mod_fcgid_maxrequests'] || $specialsettings != $result['specialsettings'] || $aliasdomain != $result['aliasdomain'] || $issubof != $result['ismainbutsubto'] || $email_only != $result['email_only'] || $email_autodiscover != $result['email_autodiscover'] || ($speciallogfile != $result['speciallogfile'] && $speciallogverified == '1') || $letsencrypt != $result['letsencrypt'] || $hsts_maxage != $result['hsts'] || $hsts_sub != $result['hsts_sub'] || $hsts_preload != $result['hsts_preload']) {
 					inserttask('1');
 				}
 
@@ -1752,6 +1768,7 @@ if ($page == 'domains' || $page == 'overview') {
 				$update_data['isbinddomain'] = $isbinddomain;
 				$update_data['isemaildomain'] = $isemaildomain;
 				$update_data['email_only'] = $email_only;
+				$update_data['email_autodiscover'] = $email_autodiscover;
 				$update_data['subcanemaildomain'] = $subcanemaildomain;
 				$update_data['dkim'] = $dkim;
 				$update_data['caneditdomain'] = $caneditdomain;
@@ -1783,6 +1800,7 @@ if ($page == 'domains' || $page == 'overview') {
 					`isbinddomain` = :isbinddomain,
 					`isemaildomain` = :isemaildomain,
 					`email_only` = :email_only,
+					`email_autodiscover` = :email_autodiscover,
 					`subcanemaildomain` = :subcanemaildomain,
 					`dkim` = :dkim,
 					`caneditdomain` = :caneditdomain,
