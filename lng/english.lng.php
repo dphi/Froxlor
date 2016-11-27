@@ -2066,3 +2066,6 @@ $lng['serversettings']['nginx_http2_support']['title'] = 'Nginx HTTP2 Support';
 $lng['serversettings']['nginx_http2_support']['description'] = 'enable http2 support for ssl. ENABLE ONLY IF YOUR Nginx SUPPORT THIS FEATURE. (version 1.9.5+)';
 $lng['serversettings']['mod_fcgid']['username_prefix']['title'] = 'Prefix added to the username';
 $lng['serversettings']['mod_fcgid']['username_prefix']['description'] = 'This setting avoids username collisions.';
+
+// Added for autodiscovery
+$lng['admin']['emailautodiscover'] = 'Enable email autodiscovery/-config';
