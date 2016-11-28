@@ -2068,4 +2068,4 @@ $lng['serversettings']['mod_fcgid']['username_prefix']['title'] = 'Prefix added 
 $lng['serversettings']['mod_fcgid']['username_prefix']['description'] = 'This setting avoids username collisions.';
 
 // Added for autodiscovery
-$lng['admin']['emailautodiscover'] = 'Enable email autodiscovery/-config';
+$lng['admin']['email_autodiscover'] = 'Enable email autodiscovery/-config';
