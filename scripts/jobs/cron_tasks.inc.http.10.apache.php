@@ -743,9 +743,8 @@ class apache extends HttpConfigBase
 		if ($domain['specialsettings'] != '') {
 			$vhost_content .= $this->processSpecialConfigTemplate($domain['specialsettings'], $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
 		}
-		if ($_vhost_content != '') {
-			$vhost_content .= $_vhost_content;
-		}
+
+		$vhost_content .= '# REPLACE-ME #'
 
 		if (Settings::Get('system.default_vhostconf') != '') {
 			$vhost_content .= $this->processSpecialConfigTemplate(Settings::Get('system.default_vhostconf'), $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
@@ -780,7 +779,6 @@ class apache extends HttpConfigBase
 		));
 
 		$ipportlist = '';
-		$_vhost_content = '';
 		while ($ipandport = $result_stmt->fetch(PDO::FETCH_ASSOC)) {
 
 			$ipport = '';
@@ -806,8 +804,12 @@ class apache extends HttpConfigBase
 			}
 
 			if ($ipandport['default_vhostconf_domain'] != '') {
-				$_vhost_content .= $this->processSpecialConfigTemplate($ipandport['default_vhostconf_domain'], $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
+				$temp = $this->processSpecialConfigTemplate($ipandport['default_vhostconf_domain'], $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
+				str_replace("# REPLACE-ME #", $temp, $body, 1)
+			} else {
+				str_replace("# REPLACE-ME #", '', $body, 1);
 			}
+
 			$ipportlist .= $ipport;
 		}
 
@@ -1037,7 +1039,7 @@ class apache extends HttpConfigBase
 
 		$domains = WebserverBase::getVhostsToCreate();
 		foreach ($domains as $domain) {
-			if ($domain['email_autodiscovery'] == 0 || $domain['isemaildomain'] == 0) {
+			if ($domain['email_autodiscover'] == 0 || $domain['isemaildomain'] == 0) {
 				continue;
 			}
 
