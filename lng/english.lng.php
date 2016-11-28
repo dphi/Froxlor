@@ -2067,4 +2067,4 @@ $lng['serversettings']['nginx_http2_support']['title'] = 'Nginx HTTP2 Support';
 $lng['serversettings']['nginx_http2_support']['description'] = 'enable http2 support for ssl. ENABLE ONLY IF YOUR Nginx SUPPORT THIS FEATURE. (version 1.9.5+)';
 
 // Added for autodiscovery
-$lng['admin']['emailautodiscover'] = 'Enable email autodiscovery/-config';
+$lng['admin']['email_autodiscover'] = 'Enable email autodiscovery/-config';

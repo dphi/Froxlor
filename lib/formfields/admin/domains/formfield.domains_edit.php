@@ -294,13 +294,13 @@ return array(
 						),
 						'value' => array($result['email_only'])
 					),
-					'emailautodiscover' => array(
-						'label' => $lng['admin']['emailautodiscover'],
+					'email_autodiscover' => array(
+						'label' => $lng['admin']['email_autodiscover'],
 						'type' => 'checkbox',
 						'values' => array(
 							array ('label' => $lng['panel']['yes'], 'value' => '1')
 						),
-						'value' => array($result['emailautodiscover'])
+						'value' => array($result['email_autodiscover'])
 					),
 					'subcanemaildomain' => array(
 						'label' => $lng['admin']['subdomainforemail'],
