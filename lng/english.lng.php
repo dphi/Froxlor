@@ -2068,4 +2068,4 @@ $lng['serversettings']['nginx_http2_support']['description'] = 'enable http2 sup
 
 $lng['error']['noipportgiven'] = 'No IP/port given';
 // Added for autodiscovery
-$lng['admin']['emailautodiscover'] = 'Enable email autodiscovery/-config';
+$lng['admin']['email_autodiscover'] = 'Enable email autodiscovery/-config';
