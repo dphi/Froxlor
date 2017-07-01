@@ -199,9 +199,9 @@ if (Settings::Get('system.le_froxlor_enabled') == '1') {
 $certrows = $certificates_stmt->fetchAll(PDO::FETCH_ASSOC);
 foreach ($certrows as $certrow) {
 
-	$certrow['leprivatekey'] = Settings::Get('system.leprivatekey')
-	$certrow['lepublickey'] = Settings::Get('system.lepublickey')
-	$certrow['leregistered'] = Settings::Get('system.leregistered')
+	$certrow['leprivatekey'] = Settings::Get('system.leprivatekey');
+	$certrow['lepublickey'] = Settings::Get('system.lepublickey');
+	$certrow['leregistered'] = Settings::Get('system.leregistered');
 
 	// set logger to corresponding loginname for the log to appear in the users system-log
 	$cronlog = FroxlorLogger::getInstanceOf(array(
