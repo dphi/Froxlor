@@ -80,7 +80,6 @@ class lescript
 					Settings::Set('system.lepublickey', $keys['public']);
 					Settings::Set('system.leprivatekey', $keys['private']);
 					Settings::Set('system.leregistered', 0); // key is not registered
-				}
 			}
 			$leregistered=0;
 			$this->accountKey = $keys['private'];
