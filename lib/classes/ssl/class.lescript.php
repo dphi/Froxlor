@@ -329,8 +329,7 @@ class lescript
 	private function setLeRegisteredState($state)
 	{
 		if ($this->isLeProduction) {
-				Settings::Set('system.leregistered', $state);
-			}
+			Settings::Set('system.leregistered', $state);
 		}
 	}
 
