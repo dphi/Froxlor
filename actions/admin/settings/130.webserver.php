@@ -284,7 +284,7 @@ return array(
 					'save_method' => 'storeSettingField'
 				),
 				'email_autodiscover_path' => array(
-					'label' => $lng['serversettings']['email_autodiscover_path'],
+					'label' => $lng['serversettings']['email_autodiscover_vhost'],
 					'settinggroup' => 'system',
 					'varname' => 'email_autodiscover_path',
 					'type' => 'text',
