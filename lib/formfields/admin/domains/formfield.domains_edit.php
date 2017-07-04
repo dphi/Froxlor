@@ -361,6 +361,14 @@ return array(
 							$result['email_only']
 						)
 					),
+					'email_autodiscover' => array(
+						'label' => $lng['admin']['email_autodiscover'],
+						'type' => 'checkbox',
+						'values' => array(
+							array ('label' => $lng['panel']['yes'], 'value' => '1')
+						),
+						'value' => array($result['email_autodiscover'])
+					),
 					'subcanemaildomain' => array(
 						'label' => $lng['admin']['subdomainforemail'],
 						'type' => 'select',

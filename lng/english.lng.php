@@ -2067,3 +2067,5 @@ $lng['serversettings']['nginx_http2_support']['description'] = 'enable http2 sup
 $lng['error']['noipportgiven'] = 'No IP/port given';
 $lng['serversettings']['mod_fcgid']['username_prefix']['title'] = 'Prefix added to the username';
 $lng['serversettings']['mod_fcgid']['username_prefix']['description'] = 'This setting avoids username collisions.';
+$lng['admin']['email_autodiscover'] = 'Enable email autodiscovery/-config';
+$lng['serversettings']['email_autodiscover_vhost'] = 'Configration to be added to a vHost with email autodiscovery enabled';

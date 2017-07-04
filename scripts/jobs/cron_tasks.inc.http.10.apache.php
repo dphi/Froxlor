@@ -504,7 +504,7 @@ class apache extends HttpConfigBase
 			// This vHost has PHP enabled and we are using the regular mod_php
 			$cmail = getCustomerDetail($domain['customerid'], 'email');
 			$php_options_text .= '  php_admin_value sendmail_path "/usr/sbin/sendmail -t -f '.$cmail.'"' . PHP_EOL;
-			
+
 			if ($domain['openbasedir'] == '1') {
 				if ($domain['openbasedir_path'] == '1' || strstr($domain['documentroot'], ":") !== false) {
 					$_phpappendopenbasedir = appendOpenBasedirPath($domain['customerroot'], true);
@@ -750,10 +750,39 @@ class apache extends HttpConfigBase
 		return $vhost_filename;
 	}
 
+
+	/**
+	 * This function returns only the vhost specific path, php, ... configuration
+	 */
+	protected function getVhostBody($domain, $ssl_vhost = false) {
+		$vhost_content = '';
+		mkDirWithCorrectOwnership($domain['customerroot'], $domain['documentroot'], $domain['guid'], $domain['guid'], true, true);
+		$vhost_content .= $this->getWebroot($domain);
+		if ($this->_deactivated == false) {
+			$vhost_content .= $this->composePhpOptions($domain, $ssl_vhost);
+			$vhost_content .= $this->getStats($domain);
+		}
+		$vhost_content .= $this->getLogfiles($domain);
+
+		if ($domain['specialsettings'] != '') {
+			$vhost_content .= $this->processSpecialConfigTemplate($domain['specialsettings'], $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
+		}
+
+		if ($domain['email_autodiscover'] == true) {
+			$vhost_content .= $this->processSpecialConfigTemplate(Settings::Get('system.email_autodiscover_vhost'), $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
+		}
+
+		if (Settings::Get('system.default_vhostconf') != '') {
+			$vhost_content .= $this->processSpecialConfigTemplate(Settings::Get('system.default_vhostconf'), $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
+		}
+
+		return $vhost_content;
+	}
+
 	/**
 	 * We compose the virtualhost entry for one domain
 	 */
-	protected function getVhostContent($domain, $ssl_vhost = false)
+	protected function getVhostContent($domain, $body, $ssl_vhost = false)
 	{
 		if ($ssl_vhost === true && ($domain['ssl_redirect'] != '1' && $domain['ssl'] != '1')) {
 			return '';
@@ -776,7 +805,6 @@ class apache extends HttpConfigBase
 		));
 
 		$ipportlist = '';
-		$_vhost_content = '';
 		while ($ipandport = $result_stmt->fetch(PDO::FETCH_ASSOC)) {
 
 			$ipport = '';
@@ -802,8 +830,9 @@ class apache extends HttpConfigBase
 			}
 
 			if ($ipandport['default_vhostconf_domain'] != '') {
-				$_vhost_content .= $this->processSpecialConfigTemplate($ipandport['default_vhostconf_domain'], $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
+				$body = $this->processSpecialConfigTemplate($ipandport['default_vhostconf_domain'], $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
 			}
+
 			$ipportlist .= $ipport;
 		}
 
@@ -927,25 +956,8 @@ class apache extends HttpConfigBase
 			$vhost_content .= '  </IfModule>' . "\n";
 		} else {
 
-			mkDirWithCorrectOwnership($domain['customerroot'], $domain['documentroot'], $domain['guid'], $domain['guid'], true, true);
-			$vhost_content .= $this->getWebroot($domain);
-			if ($this->_deactivated == false) {
-				$vhost_content .= $this->composePhpOptions($domain, $ssl_vhost);
-				$vhost_content .= $this->getStats($domain);
-			}
-			$vhost_content .= $this->getLogfiles($domain);
-
-			if ($domain['specialsettings'] != '') {
-				$vhost_content .= $this->processSpecialConfigTemplate($domain['specialsettings'], $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
-			}
-
-			if ($_vhost_content != '') {
-				$vhost_content .= $_vhost_content;
-			}
-
-			if (Settings::Get('system.default_vhostconf') != '') {
-				$vhost_content .= $this->processSpecialConfigTemplate(Settings::Get('system.default_vhostconf'), $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
-			}
+			// add the body of this vhost
+			$vhost_content .= $body;
 		}
 
 		$vhost_content .= '</VirtualHost>' . "\n";
@@ -969,19 +981,20 @@ class apache extends HttpConfigBase
 
 			if ($domain['deactivated'] != '1' || Settings::Get('system.deactivateddocroot') != '') {
 				// Create vhost without ssl
-				$this->virtualhosts_data[$vhosts_filename] .= $this->getVhostContent($domain, false);
+				$this->virtualhosts_data[$vhosts_filename] .= $this->getVhostContent($domain, $this->getVhostBody($domain), false);
 
 				if ($domain['ssl'] == '1' || $domain['ssl_redirect'] == '1') {
 					// Adding ssl stuff if enabled
 					$vhosts_filename_ssl = $this->getVhostFilename($domain, true);
 					$this->virtualhosts_data[$vhosts_filename_ssl] = '# Domain ID: ' . $domain['id'] . ' (SSL) - CustomerID: ' . $domain['customerid'] . ' - CustomerLogin: ' . $domain['loginname'] . "\n";
-					$this->virtualhosts_data[$vhosts_filename_ssl] .= $this->getVhostContent($domain, true);
+					$this->virtualhosts_data[$vhosts_filename_ssl] .= $this->getVhostContent($domain, $this->getVhostBody($domain), true);
 				}
 			} else {
 				$this->virtualhosts_data[$vhosts_filename] .= '# Customer deactivated and a docroot for deactivated users hasn\'t been set.' . "\n";
 			}
 		}
 	}
+
 
 	/**
 	 * We compose the diroption entries for the paths
