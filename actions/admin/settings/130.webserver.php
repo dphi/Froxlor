@@ -283,10 +283,10 @@ return array(
 					'option_options_method' => 'getRedirectCodes',
 					'save_method' => 'storeSettingField'
 				),
-				'email_autodiscover_path' => array(
+				'email_autodiscover_vhost' => array(
 					'label' => $lng['serversettings']['email_autodiscover_vhost'],
 					'settinggroup' => 'system',
-					'varname' => 'email_autodiscover_path',
+					'varname' => 'email_autodiscover_vhost',
 					'type' => 'text',
 					'default' => '',
 					'save_method' => 'storeSettingField'

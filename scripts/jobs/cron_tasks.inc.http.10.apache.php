@@ -769,7 +769,7 @@ class apache extends HttpConfigBase
 		}
 
 		if ($domain['email_autodiscover'] == true) {
-			$vhost_content .= $this->processSpecialConfigTemplate(Settings::Get('system.email_autodiscover'), $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
+			$vhost_content .= $this->processSpecialConfigTemplate(Settings::Get('system.email_autodiscover_vhost'), $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
 		}
 
 		if (Settings::Get('system.default_vhostconf') != '') {
