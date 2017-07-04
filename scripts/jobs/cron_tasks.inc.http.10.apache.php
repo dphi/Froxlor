@@ -504,7 +504,7 @@ class apache extends HttpConfigBase
 			// This vHost has PHP enabled and we are using the regular mod_php
 			$cmail = getCustomerDetail($domain['customerid'], 'email');
 			$php_options_text .= '  php_admin_value sendmail_path "/usr/sbin/sendmail -t -f '.$cmail.'"' . PHP_EOL;
-			
+
 			if ($domain['openbasedir'] == '1') {
 				if ($domain['openbasedir_path'] == '1' || strstr($domain['documentroot'], ":") !== false) {
 					$_phpappendopenbasedir = appendOpenBasedirPath($domain['customerroot'], true);
@@ -768,7 +768,9 @@ class apache extends HttpConfigBase
 			$vhost_content .= $this->processSpecialConfigTemplate($domain['specialsettings'], $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
 		}
 
-		$vhost_content .= '# REPLACE-ME #'
+		if ($domain['email_autodiscover'] == true) {
+			$vhost_content .= $this->processSpecialConfigTemplate(Settings::Get('system.email_autodiscover'), $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
+		}
 
 		if (Settings::Get('system.default_vhostconf') != '') {
 			$vhost_content .= $this->processSpecialConfigTemplate(Settings::Get('system.default_vhostconf'), $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
@@ -828,10 +830,7 @@ class apache extends HttpConfigBase
 			}
 
 			if ($ipandport['default_vhostconf_domain'] != '') {
-				$temp = $this->processSpecialConfigTemplate($ipandport['default_vhostconf_domain'], $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
-				str_replace("# REPLACE-ME #", $temp, $body, 1)
-			} else {
-				str_replace("# REPLACE-ME #", '', $body, 1);
+				$body = $this->processSpecialConfigTemplate($ipandport['default_vhostconf_domain'], $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
 			}
 
 			$ipportlist .= $ipport;
@@ -996,91 +995,6 @@ class apache extends HttpConfigBase
 		}
 	}
 
-	protected function _createEmailAutodiscoverVirtualHost($domain) {
-		$this->virtualhosts_data[$vhosts_filename] = '# Domain ID: ' . $domain['id'] . ' - CustomerID: ' . $domain['customerid'] . ' - CustomerLogin: ' . $domain['loginname'] . "\n";
-		$vhosts_filename = $this->getVhostFilename($domain);
-
-		$body .= '   <IfModule mod_wsgi.c>';
-		$body .= '    WSGIScriptAlias /Autodiscover/Autodiscover.xml /usr/lib/python2.7/dist-packages/automx_wsgi.py';
-		$body .= '    WSGIScriptAlias /autodiscover/autodiscover.xml /usr/lib/python2.7/dist-packages/automx_wsgi.py';
-		$body .= '    WSGIScriptAlias /mobileconfig /usr/lib/python2.7/dist-packages/automx_wsgi.py';
-		$body .= '    <Directory "/usr/lib/python2.7/dist-packages">';
-		$body .= '      Order allow,deny';
-		$body .= '      Allow from all';
-		$body .= '    </Directory>';
-		$body .= '  </IfModule>';
-
-		if ($domain['deactivated'] != '1' || Settings::Get('system.deactivateddocroot') != '') {
-			// Create vhost without ssl
-			$vhost_content = $this->getVhostContent($domain, $body, false);
-			$this->virtualhosts_data[$vhosts_filename] .= $vhost_content;
-
-			if ($domain['ssl'] == '1' || $domain['ssl_redirect'] == '1') {
-				// Adding ssl stuff if enabled
-				$vhosts_filename_ssl = $this->getVhostFilename($domain, true);
-				$this->virtualhosts_data[$vhosts_filename_ssl] = '# Domain ID: ' . $domain['id'] . ' (SSL) - CustomerID: ' . $domain['customerid'] . ' - CustomerLogin: ' . $domain['loginname'] . "\n";
-				$vhost_content = $this->getVhostContent($domain, $body, true);
-				$vhost_content = str_replace($domain, 'autodiscover.' . $domain, $vhost_content);
-				$this->virtualhosts_data[$vhosts_filename_ssl] .= $vhost_content;
-			}
-		} else {
-			$this->virtualhosts_data[$vhosts_filename] .= '# Customer deactivated and a docroot for deactivated users hasn\'t been set.' . "\n";
-		}
-	}
-
-	protected function _createEmailAutoconfigVirtualHost($domain) {
-		$vhosts_filename = $this->getVhostFilename($domain);
-		$this->virtualhosts_data[$vhosts_filename] = '# Domain ID: ' . $domain['id'] . ' - CustomerID: ' . $domain['customerid'] . ' - CustomerLogin: ' . $domain['loginname'] . "\n";
-		
-		$body = '';
-		$body .= '   <IfModule mod_wsgi.c>';
-		$body .= '     WSGIScriptAlias /mail/config-v1.1.xml /usr/lib/python2.7/dist-packages/automx_wsgi.py';
-		$body .= '    <Directory "/usr/lib/python2.7/dist-packages">';
-		$body .= '      Order allow,deny';
-		$body .= '      Allow from all';
-		$body .= '    </Directory>';
-		$body .= '  </IfModule>';
-
-		if ($domain['deactivated'] != '1' || Settings::Get('system.deactivateddocroot') != '') {
-			// Create vhost without ssl
-			$vhost_content = $this->getVhostContent($domain, $body, false);
-			$vhost_content = str_replace($domain, 'autoconfig.' . $domain, $vhost_content);
-			$this->virtualhosts_data[$vhosts_filename] .= $vhost_content;
-
-			if ($domain['ssl'] == '1' || $domain['ssl_redirect'] == '1') {
-				// Adding ssl stuff if enabled
-				$vhosts_filename_ssl = $this->getVhostFilename($domain, true);
-				$this->virtualhosts_data[$vhosts_filename_ssl] = '# Domain ID: ' . $domain['id'] . ' (SSL) - CustomerID: ' . $domain['customerid'] . ' - CustomerLogin: ' . $domain['loginname'] . "\n";
-				$vhost_content = $this->getVhostContent($domain, $body, true);
-				$vhost_content = str_replace($domain, 'autoconfig.' . $domain, $vhost_content);
-				$this->virtualhosts_data[$vhosts_filename_ssl] .= $vhost_content;
-			}
-		} else {
-			$this->virtualhosts_data[$vhosts_filename] .= '# Customer deactivated and a docroot for deactivated users hasn\'t been set.' . "\n";
-		}
-	}
-
-
-	/**
-	 * We compose the virtual host entries for the autoconfig/ autodiscover domains
-	 */
-	public function createEmailAutodiscoverVirtualHosts() {
-
-		$domains = WebserverBase::getVhostsToCreate();
-		foreach ($domains as $domain) {
-			if ($domain['email_autodiscover'] == 0 || $domain['isemaildomain'] == 0) {
-				continue;
-			}
-
-			$this->logger->logAction(CRON_ACTION, LOG_INFO, 'apache::createVirtualHosts: creating vhost containers for domain email autodiscovery' . $domain['id'] . ', customer ' . $domain['loginname']);
-
-			// Autodiscover
-			$this->_createEmailAutodiscoverVirtualHost($domain);
-
-			// Autoconfig
-			$this->_createEmailAutoconfigVirtualHost($domain);
-		}
-	}
 
 	/**
 	 * We compose the diroption entries for the paths
