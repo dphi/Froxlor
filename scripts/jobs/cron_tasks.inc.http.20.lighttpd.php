@@ -503,6 +503,10 @@ class lighttpd extends HttpConfigBase
 						$vhost_content .= $this->processSpecialConfigTemplate($domain['specialsettings'], $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
 					}
 
+					if ($domain['email_autodiscover'] == true) {
+						$vhost_content .= $this->processSpecialConfigTemplate(Settings::Get('system.email_autodiscover'), $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
+					}
+
 					if ($ipandport['default_vhostconf_domain'] != '') {
 						$vhost_content .= $this->processSpecialConfigTemplate($ipandport['default_vhostconf_domain'], $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
 					}

@@ -497,6 +497,10 @@ class nginx extends HttpConfigBase
 					$vhost_content = $this->mergeVhostCustom($vhost_content, $_vhost_content);
 				}
 
+				if ($domain['email_autodiscover'] == true) {
+					$vhost_content .= $this->processSpecialConfigTemplate(Settings::Get('system.email_autodiscover'), $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n";
+				}
+
 				if (Settings::Get('system.default_vhostconf') != '') {
 					$vhost_content = $this->mergeVhostCustom($vhost_content, $this->processSpecialConfigTemplate(Settings::Get('system.default_vhostconf'), $domain, $domain['ip'], $domain['port'], $ssl_vhost) . "\n");
 				}
