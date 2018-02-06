@@ -63,13 +63,13 @@ class Extrausers
 						$u['shell'] = '/bin/false';
 						$u['comment'] = 'Locked Froxlor User';
 					}
-					$line = $u['username'] . ':' . $u['password'] . ':' . $u['uid'] . ':' . $u['gid'] . ':' . $u['comment'] . ':' . $u['homedir'] . ':' . $u['shell'] . PHP_EOL;
+					$line = Settings::Get('system.mod_fcgid_system_prefix') . $u['username'] . ':' . $u['password'] . ':' . $u['uid'] . ':' . $u['gid'] . ':' . $u['comment'] . ':' . $u['homedir'] . ':' . $u['shell'] . PHP_EOL;
 					break;
 				case 'group':
-					$line = $u['groupname'] . ':' . $u['password'] . ':' . $u['gid'] . ':' . $u['members'] . PHP_EOL;
+					$line = Settings::Get('system.mod_fcgid_system_prefix') . $u['groupname'] . ':' . $u['password'] . ':' . $u['gid'] . ':' . $u['members'] . PHP_EOL;
 					break;
 				case 'shadow':
-					$line = $u['username'] . ':' . $u['password'] . ':' . floor(time() / 86400 - 1) . ':0:99999:7:::' . PHP_EOL;
+					$line = Settings::Get('system.mod_fcgid_system_prefix') . $u['username'] . ':' . $u['password'] . ':' . floor(time() / 86400 - 1) . ':0:99999:7:::' . PHP_EOL;
 					break;
 			}
 			$data_content .= $line;
