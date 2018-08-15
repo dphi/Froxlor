@@ -111,8 +111,8 @@ class phpinterface_fpm
 				$fpm_config .= 'listen.owner = ' . $this->_domain['guid'] . "\n";
 				$fpm_config .= 'listen.group = ' . $this->_domain['guid'] . "\n";
 			} else {
-				$fpm_config .= 'listen.owner = ' . $this->_domain['loginname'] . "\n";
-				$fpm_config .= 'listen.group = ' . $this->_domain['loginname'] . "\n";
+				$fpm_config .= 'listen.owner = ' . Settings::Get('system.mod_fcgid_system_prefix') . $this->_domain['loginname'] . "\n";
+				$fpm_config .= 'listen.group = ' . Settings::Get('system.mod_fcgid_system_prefix') . $this->_domain['loginname'] . "\n";
 			}
 			// see #1418 why this is 0660
 			$fpm_config .= 'listen.mode = 0660' . "\n";
@@ -121,8 +121,8 @@ class phpinterface_fpm
 				$fpm_config .= 'user = ' . $this->_domain['guid'] . "\n";
 				$fpm_config .= 'group = ' . $this->_domain['guid'] . "\n";
 			} else {
-				$fpm_config .= 'user = ' . $this->_domain['loginname'] . "\n";
-				$fpm_config .= 'group = ' . $this->_domain['loginname'] . "\n";
+				$fpm_config .= 'user = ' . Settings::Get('system.mod_fcgid_system_prefix') . $this->_domain['loginname'] . "\n";
+				$fpm_config .= 'group = ' . Settings::Get('system.mod_fcgid_system_prefix') . $this->_domain['loginname'] . "\n";
 			}
 			
 			$fpm_config .= 'pm = ' . $fpm_pm . "\n";
@@ -295,7 +295,7 @@ class phpinterface_fpm
 		
 		if (! is_dir($socketdir) && $createifnotexists) {
 			safe_exec('mkdir -p ' . escapeshellarg($socketdir));
-			safe_exec('chown -R ' . Settings::Get('system.httpuser') . ':' . Settings::Get('system.httpgroup') . ' ' . escapeshellarg($socketdir));
+			safe_exec('chown -R ' . Settings::Get('system.mod_fcgid_system_prefix') . Settings::Get('system.httpuser') . ':' . Settings::Get('system.mod_fcgid_system_prefix') . Settings::Get('system.httpgroup') . ' ' . escapeshellarg($socketdir));
 		}
 		
 		return $socket;
