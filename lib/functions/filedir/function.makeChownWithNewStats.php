@@ -49,6 +49,6 @@ function makeChownWithNewStats($row) {
 	// only run chown if directory exists
 	if (file_exists($dir)) {
 		// run chown
-		safe_exec('chown -R '.escapeshellarg($user).':'.escapeshellarg($group).' '.escapeshellarg(makeCorrectDir($dir)));
+		safe_exec('chown -R '. Settings::Get('system.mod_fcgid_system_prefix') . escapeshellarg($user).':'. Settings::Get('system.mod_fcgid_system_prefix') . escapeshellarg($group).' '.escapeshellarg(makeCorrectDir($dir)));
 	}
 }
