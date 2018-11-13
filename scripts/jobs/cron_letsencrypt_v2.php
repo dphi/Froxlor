@@ -45,6 +45,7 @@ $certificates_stmt = Database::query("
 			cust.`leprivatekey`,
 			cust.`lepublickey`,
 			cust.`leregistered`,
+			cust.`leaccount`,
 			cust.`customerid`,
 			cust.`loginname`
 		FROM
@@ -55,6 +56,7 @@ $certificates_stmt = Database::query("
 				dom.`id` = domssl.`domainid`
 		WHERE
 			dom.`customerid` = cust.`customerid`
+			AND cust.deactivated = 0
 			AND dom.`letsencrypt` = 1
 			AND dom.`aliasdomain` IS NULL
 			AND dom.`iswildcarddomain` = 0
@@ -88,6 +90,7 @@ $updcert_stmt = Database::prepare("
 			`ssl_ca_file` = :ca,
 			`ssl_cert_chainfile` = :chain,
 			`ssl_csr_file` = :csr,
+			`ssl_fullchain_file` = :fullchain,
 			`expirationdate` = :expirationdate
 	");
 
@@ -107,6 +110,7 @@ if (Settings::Get('system.le_froxlor_enabled') == '1') {
 		'leprivatekey' => Settings::Get('system.leprivatekey'),
 		'lepublickey' => Settings::Get('system.lepublickey'),
 		'leregistered' => Settings::Get('system.leregistered'),
+		'leaccount' => Settings::Get('system.leaccount'),
 		'ssl_redirect' => Settings::Get('system.le_froxlor_redirect'),
 		'expirationdate' => null,
 		'ssl_cert_file' => null,
@@ -178,6 +182,7 @@ if (Settings::Get('system.le_froxlor_enabled') == '1') {
 				'ca' => $return['chain'],
 				'chain' => $return['chain'],
 				'csr' => $return['csr'],
+				'fullchain' => $return['fullchain'],
 				'expirationdate' => date('Y-m-d H:i:s', $newcert['validTo_time_t'])
 			));
 
@@ -261,6 +266,7 @@ foreach ($certrows as $certrow) {
 				'ca' => $return['chain'],
 				'chain' => $return['chain'],
 				'csr' => $return['csr'],
+				'fullchain' => $return['fullchain'],
 				'expirationdate' => date('Y-m-d H:i:s', $newcert['validTo_time_t'])
 			));
 

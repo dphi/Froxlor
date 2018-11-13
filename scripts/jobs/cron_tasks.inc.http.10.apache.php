@@ -66,8 +66,8 @@ class apache extends HttpConfigBase
 			foreach ($restart_cmds as $restart_cmd) {
 				// check whether the config dir is empty (no domains uses this daemon)
 				// so we need to create a dummy
-				$isDirEmpty = !(new \FilesystemIterator($restart_cmd['config_dir']))->valid();
-				if ($isDirEmpty) {
+				$_conffiles = glob(makeCorrectFile($restart_cmd['config_dir'] . "/*.conf"));
+				if ($_conffiles === false || empty($_conffiles)) {
 					$this->logger->logAction(CRON_ACTION, LOG_INFO, 'apache::reload: fpm config directory "' . $restart_cmd['config_dir'] . '" is empty. Creating dummy.');
 					phpinterface_fpm::createDummyPool($restart_cmd['config_dir']);
 				}
@@ -359,8 +359,8 @@ class apache extends HttpConfigBase
 							// start block, cut off last pipe and close block
 							$filesmatch = '('.str_replace(".", "\.", substr($filesmatch, 0, -1)).')';
 							$this->virtualhosts_data[$vhosts_filename] .= '   <FilesMatch \.'.$filesmatch.'$>'. "\n";
-							$this->virtualhosts_data[$vhosts_filename] .= '     AddHandler php5-fastcgi .php' . "\n";
-							$this->virtualhosts_data[$vhosts_filename] .= '     Action php5-fastcgi /fastcgiphp' . "\n";
+							$this->virtualhosts_data[$vhosts_filename] .= '     AddHandler php-fastcgi .php' . "\n";
+							$this->virtualhosts_data[$vhosts_filename] .= '     Action php-fastcgi /fastcgiphp' . "\n";
 							$this->virtualhosts_data[$vhosts_filename] .= '      Options +ExecCGI' . "\n";
 							$this->virtualhosts_data[$vhosts_filename] .= '    </FilesMatch>' . "\n";
 							// >=apache-2.4 enabled?
@@ -722,19 +722,44 @@ class apache extends HttpConfigBase
 		
 		// The normal access/error - logging is enabled
 		$error_log = makeCorrectFile(Settings::Get('system.logfiles_directory') . $domain['loginname'] . $speciallogfile . '-error.log');
-		// Create the logfile if it does not exist (fixes #46)
-		touch($error_log);
-		chown($error_log, Settings::Get('system.httpuser'));
-		chgrp($error_log, Settings::Get('system.httpgroup'));
-		
 		$access_log = makeCorrectFile(Settings::Get('system.logfiles_directory') . $domain['loginname'] . $speciallogfile . '-access.log');
-		// Create the logfile if it does not exist (fixes #46)
-		touch($access_log);
-		chown($access_log, Settings::Get('system.httpuser'));
-		chgrp($access_log, Settings::Get('system.httpgroup'));
 		
-		$logfiles_text .= '  ErrorLog "' . $error_log . "\"\n";
-		$logfiles_text .= '  CustomLog "' . $access_log . '" combined' . "\n";
+		$logtype = 'combined';
+		if (Settings::Get('system.logfiles_format') != '') {
+			$logtype = 'frx_custom';
+			$logfiles_text .= '  LogFormat "' . Settings::Get('system.logfiles_format') . '" ' . $logtype . "\n";
+		}
+		if (Settings::Get('system.logfiles_type') == '2' && Settings::Get('system.logfiles_format') == '') {
+			$logtype = 'vhost_combined';
+		}
+
+		if (Settings::Get('system.logfiles_piped') == '1' && Settings::Get('system.logfiles_script') != '') {
+			// replace for error_log
+			$command = replace_variables(Settings::Get('system.logfiles_script'), array(
+				'LOGFILE' => $error_log,
+				'DOMAIN' => $domain['domain'],
+				'CUSTOMER' => $domain['loginname']
+			));
+			$logfiles_text .= '  ErrorLog "| ' . $command . "\"\n";
+			// replace for access_log
+			$command = replace_variables(Settings::Get('system.logfiles_script'), array(
+				'LOGFILE' => $access_log,
+				'DOMAIN' => $domain['domain'],
+				'CUSTOMER' => $domain['loginname']
+			));
+			$logfiles_text .= '  CustomLog "| ' . $command . '" ' . $logtype . "\n";
+		} else {
+			// Create the logfile if it does not exist (fixes #46)
+			touch($error_log);
+			chown($error_log, Settings::Get('system.httpuser'));
+			chgrp($error_log, Settings::Get('system.httpgroup'));
+			touch($access_log);
+			chown($access_log, Settings::Get('system.httpuser'));
+			chgrp($access_log, Settings::Get('system.httpgroup'));
+
+			$logfiles_text .= '  ErrorLog "' . $error_log . '"' . "\n";
+			$logfiles_text .= '  CustomLog "' . $access_log . '" ' . $logtype . "\n";
+		}
 		
 		if (Settings::Get('system.awstats_enabled') == '1') {
 			if ((int) $domain['parentdomainid'] == 0) {
@@ -963,7 +988,7 @@ class apache extends HttpConfigBase
 			$corrected_docroot = $domain['documentroot'];
 			
 			// Get domain's redirect code
-			$code = getDomainRedirectCode($domain['id'], '301');
+			$code = getDomainRedirectCode($domain['id']);
 			$modrew_red = '';
 			if ($code != '') {
 				$modrew_red = ' [R=' . $code . ';L,NE]';

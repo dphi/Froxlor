@@ -227,6 +227,7 @@ $lng['error']['destinationalreadyexistasmail'] = 'Die Weiterleitung zu "%s" exis
 $lng['error']['destinationalreadyexist'] = 'Es existiert bereits eine Weiterleitung nach "%s".';
 $lng['error']['destinationiswrong'] = 'Die Weiterleitungsadresse "%s" enthält ungültige Zeichen oder ist nicht vollständig.';
 $lng['error']['ticketnotaccessible'] = 'Sie können sich das Ticket nicht ansehen.';
+$lng['error']['backupfoldercannotbedocroot'] = 'Der Ordner für Backups darf nicht das Heimatverzeichnis sein, wähle einen Ordner unterhalb des Heimatverzeichnisses, z.B. /backups';
 
 /**
  * Questions
@@ -333,6 +334,14 @@ $lng['serversettings']['documentroot_prefix']['title'] = 'Heimatverzeichnis';
 $lng['serversettings']['documentroot_prefix']['description'] = 'Wo sollen die Heimatverzeichnisse der Kunden liegen?';
 $lng['serversettings']['logfiles_directory']['title'] = 'Webserver-Logdateien-Verzeichnis';
 $lng['serversettings']['logfiles_directory']['description'] = 'Wo sollen die Logdateien des Webservers liegen?';
+$lng['serversettings']['logfiles_script']['title'] = 'Eigenes Script zu dem Log-Files übergeben werden';
+$lng['serversettings']['logfiles_script']['description'] = 'Hier kann ein Script an das die Loginhalte übergeben werden hinterlegt und die Platzhalter <strong>{LOGFILE}, {DOMAIN} und {CUSTOMER}</strong> genutzt werden, sofern nötig. Falls ein Script angegeben wird, muss die Option <strong>Webserver Logdateien umleiten</strong> gesetzt werden';
+$lng['serversettings']['logfiles_format']['title'] = 'Access-Log Format';
+$lng['serversettings']['logfiles_format']['description'] = 'Hier kann ein angepasstes Log-format entsprechend der Webserver-Dokumentation angegeben werden, leer lassen für Standard';
+$lng['serversettings']['logfiles_type']['title'] = 'Access-Log Typ';
+$lng['serversettings']['logfiles_type']['description'] = 'Wähle zwischen <strong>combined</strong> oder <strong>vhost_combined</strong>.';
+$lng['serversettings']['logfiles_piped']['title'] = 'Webserver Logdateien zu eigenem Script umleiten (siehe oben)';
+$lng['serversettings']['logfiles_piped']['description'] = 'Wenn ein Script für die Logdateien verwendet wird, muss diese Option aktiviert werden, damit der Webserver die Ausgabe an das Script weitergibt.';
 $lng['serversettings']['ipaddress']['title'] = 'IP-Adresse';
 $lng['serversettings']['ipaddress']['description'] = 'Welche Haupt-IP-Adresse hat der Server?';
 $lng['serversettings']['hostname']['title'] = 'Hostname';
@@ -503,8 +512,8 @@ $lng['changepassword']['also_change_webalizer'] = ' Auch Passwort der Statistiks
 
 $lng['serversettings']['mailpwcleartext']['title'] = 'Passwörter der Mail-Konten auch im Klartext in der Datenbank speichern';
 $lng['serversettings']['mailpwcleartext']['description'] = 'Wenn diese Einstellung auf Ja gesetzt wird, werden alle Passwörter auch unverschlüsselt (also im Klartext, für jeden mit Zugriff auf die Froxlor-Datenbank sofort lesbar) in der mail_users-Tabelle gespeichert. Aktivieren Sie diese Option nur dann, wenn Sie SASL nutzen!';
-$lng['serversettings']['mailpwcleartext']['removelink'] = 'Klicken Sie hier, um alle unverschlüsselten Passwörter aus der Tabelle zu entfernen.';
-$lng['question']['admin_cleartextmailpws_reallywipe'] = 'Wollen Sie wirklich alle unverschlüsselten Passwörter aus der Tabelle mail_users entfernen? Dieser Schritt kann nicht rückgängig gemacht werden!';
+$lng['admin']['wipecleartextmailpwd'] = 'Klartext-Passwörter leeren';
+$lng['question']['admin_cleartextmailpws_reallywipe'] = 'Wollen Sie wirklich alle unverschlüsselten Passwörter aus der Tabelle mail_users entfernen? Dieser Schritt kann nicht rückgängig gemacht werden! Die Einstellung für das Speichern der E-Mail Konten Passwörter in Klartext wird hierbei ebenfalls deaktiviert.';
 $lng['admin']['configfiles']['overview'] = 'Übersicht';
 $lng['admin']['configfiles']['wizard'] = 'Assistent';
 $lng['admin']['configfiles']['distribution'] = 'Distribution';
@@ -1375,7 +1384,7 @@ $lng['admin']['usedmax'] = 'Benutzt / Max.';
 $lng['admin']['used'] = 'Benutzt';
 $lng['mysql']['size'] = 'Datenbankgröße';
 
-$lng['error']['invalidhostname'] = 'Hostname darf nicht leer sein oder nur aus Leerzeichen bestehen';
+$lng['error']['invalidhostname'] = 'Hostname muss eine gültige Domain sein. Er darf weder leer sein noch nur aus Leerzeichen bestehen';
 
 $lng['traffic']['http'] = 'HTTP (MiB)';
 $lng['traffic']['ftp'] = 'FTP (MiB)';
@@ -1588,9 +1597,9 @@ $lng['integrity_check']['SubdomainLetsencrypt'] = 'Hauptdomains ohne zugewiesene
 $lng['admin']['mod_fcgid_umask']['title'] = 'Umask (Standard: 022)';
 
 // Added for let's encrypt
-$lng['admin']['letsencrypt']['title'] = 'Benutze Let\'s Encrypt';
+$lng['admin']['letsencrypt']['title'] = 'SSL Zertifikat erstellen (Let\'s Encrypt)';
 $lng['admin']['letsencrypt']['description'] = 'Holt ein kostenloses Zertifikat von <a href="https://letsencrypt.org">Let\'s Encrypt</a>. Das Zertifikat wird automatisch erstellt und verlängert.<br><strong class="red">ACHTUNG:</strong> Wenn Wildcards aktiviert sind, wird diese Option automatisch deaktiviert. Dieses Feature befindet sich noch im Test.';
-$lng['customer']['letsencrypt']['title'] = 'Benutze Let\'s Encrypt';
+$lng['customer']['letsencrypt']['title'] = 'SSL Zertifikat erstellen (Let\'s Encrypt)';
 $lng['customer']['letsencrypt']['description'] = 'Holt ein kostenloses Zertifikat von <a href="https://letsencrypt.org">Let\'s Encrypt</a>. Das Zertifikat wird automatisch erstellt und verlängert.<br><strong class="red">ACHTUNG:</strong> Dieses Feature befindet sich noch im Test.';
 $lng['error']['sslredirectonlypossiblewithsslipport'] = 'Die Nutzung von Let\'s Encrypt ist nur möglich, wenn die Domain mindestens eine IP/Port - Kombination mit aktiviertem SSL zugewiesen hat.';
 $lng['error']['nowildcardwithletsencrypt'] = 'Let\'s Encrypt kann in ACME v1 nicht mit Wildcard-Domains umgehen. Bitte den ServerAlias auf WWW setzen oder deaktivieren';
@@ -1685,7 +1694,7 @@ $lng['serversettings']['panel_customer_hide_options']['description'] = 'Wählen 
 $lng['serversettings']['allow_allow_customer_shell']['title'] = 'Erlaube Kunden für FTP Benutzer eine Shell auszuwählen';
 $lng['serversettings']['allow_allow_customer_shell']['description'] = '<strong class="red">Bitte beachten: Shell Zugriff gestattet dem Benutzer verschiedene Programme auf Ihrem System auszuführen. Mit großer Vorsicht verwenden. Bitte aktiviere dies nur wenn WIRKLICH bekannt ist, was das bedeutet!!!</strong>';
 $lng['serversettings']['available_shells']['title'] = 'Liste der verfügbaren Shells';
-$lng['serversettings']['available_shells']['description'] = 'Komme-getrennte Liste von Shells die der Kunde für seine FTP-Konten wählen kann.<br><br>Hinweis: Die Standard-Shell <strong>/bin/false</strong> wird immer eine Auswahlmöglichkeit sein (wenn aktiviert), auch wenn diese Einstellung leer ist. Sie ist in jedem Fall der Standardwert für alle FTP-Konten';
+$lng['serversettings']['available_shells']['description'] = 'Komma-getrennte Liste von Shells die der Kunde für seine FTP-Konten wählen kann.<br><br>Hinweis: Die Standard-Shell <strong>/bin/false</strong> wird immer eine Auswahlmöglichkeit sein (wenn aktiviert), auch wenn diese Einstellung leer ist. Sie ist in jedem Fall der Standardwert für alle FTP-Konten';
 $lng['serversettings']['le_froxlor_enabled']['title'] = "Let's Encrypt für den froxlor Vhost verwenden";
 $lng['serversettings']['le_froxlor_enabled']['description'] = "Wenn dies aktiviert ist, erstellt froxlor für seinen vhost automatisch ein Let's Encrypt Zertifikat.";
 $lng['serversettings']['le_froxlor_redirect']['title'] = "SSL-Weiterleitung für den froxlor Vhost aktivieren";
@@ -1767,3 +1776,7 @@ $lng['admin']['plans']['use_plan'] = 'Plan übernehmen';
 $lng['question']['plan_reallydelete'] = 'Wollen Sie den Hosting-Plan "%s" wirklich löschen?';
 $lng['admin']['notryfiles']['title'] = 'Keine generierte try_files Anweisung';
 $lng['admin']['notryfiles']['description'] = 'Wähle "Ja", wenn eine eigene try_files Direktive in den "eigenen Vhost Einstellungen" angegeben werden soll (z.B. nötig für manche Wordpress Plugins).';
+$lng['serversettings']['phpfpm_settings']['override_fpmconfig'] = 'Überschreibe FPM-Daemon Einstellungen (pm, max_children, etc.)';
+$lng['serversettings']['phpfpm_settings']['override_fpmconfig_addinfo'] = '<br /><span class="red">Nur verwendet wenn "Überschreibe FPM-Daemon Einstellungen" auf "Ja" gestellt ist</span>';
+$lng['panel']['backuppath']['title'] = 'Pfad zur Ablage der Backups';
+$lng['panel']['backuppath']['description'] = 'In diesem Ordner werden die Backups abgelegt. Wenn das Sichern von Web-Daten aktiviert ist, werden alle Dateien aus dem Heimatverzeichnis gesichert, exklusive des hier angegebenen Backup-Ordners.';

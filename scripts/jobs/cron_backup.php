@@ -79,7 +79,7 @@ $all_jobs = $result_tasks_stmt->fetchAll();
 foreach ($all_jobs as $row) {
 
 	if ($row['data'] != '') {
-		$row['data'] = unserialize($row['data']);
+		$row['data'] = json_decode($row['data'], true);
 	}
 
 	if (is_array($row['data'])) {
@@ -91,6 +91,7 @@ foreach ($all_jobs as $row) {
 				$row['data']['destdir'] = makeCorrectDir($row['data']['destdir']);
 				$customerdocroot = makeCorrectDir(Settings::Get('system.documentroot_prefix').'/'.$row['data']['loginname'].'/');
 
+				// create folder if not exists
 				if (!file_exists($row['data']['destdir'])
 					&& $row['data']['destdir'] != '/'
 					&& $row['data']['destdir'] != Settings::Get('system.documentroot_prefix')

@@ -81,8 +81,8 @@ class nginx extends HttpConfigBase
 			foreach ($restart_cmds as $restart_cmd) {
 				// check whether the config dir is empty (no domains uses this daemon)
 				// so we need to create a dummy
-				$isDirEmpty = !(new \FilesystemIterator($restart_cmd['config_dir']))->valid();
-				if ($isDirEmpty) {
+				$_conffiles = glob(makeCorrectFile($restart_cmd['config_dir'] . "/*.conf"));
+				if ($_conffiles === false || empty($_conffiles)) {
 					$this->logger->logAction(CRON_ACTION, LOG_INFO, 'nginx::reload: fpm config directory "' . $restart_cmd['config_dir'] . '" is empty. Creating dummy.');
 					phpinterface_fpm::createDummyPool($restart_cmd['config_dir']);
 				}
@@ -238,7 +238,7 @@ class nginx extends HttpConfigBase
 					} else {
 						$_sslport = $this->checkAlternativeSslPort();
 						$mypath = 'https://' . Settings::Get('system.hostname') . $_sslport . '/';
-						$this->nginx_data[$vhost_filename] .= "\t" . 'if ($request_uri !~ ^/.well-known/acme-challenge/\w+$) {' . "\n";
+						$this->nginx_data[$vhost_filename] .= "\t" . 'if ($request_uri !~ ^/.well-known/acme-challenge/[-\w]+$) {' . "\n";
 						$this->nginx_data[$vhost_filename] .= "\t\t" . 'return 301 ' . $mypath . '$request_uri;' . "\n";
 						$this->nginx_data[$vhost_filename] .= "\t" . '}' . "\n";
 					}
@@ -485,9 +485,9 @@ class nginx extends HttpConfigBase
 			}
 
 			// Get domain's redirect code
-			$code = getDomainRedirectCode($domain['id'], '301');
+			$code = getDomainRedirectCode($domain['id']);
 
-			$vhost_content .= "\t" . 'if ($request_uri !~ ^/.well-known/acme-challenge/\w+$) {' . "\n";
+			$vhost_content .= "\t" . 'if ($request_uri !~ ^/.well-known/acme-challenge/[-\w]+$) {' . "\n";
 			$vhost_content .= "\t\t" . 'return ' . $code .' ' . $uri . '$request_uri;' . "\n";
 			$vhost_content .= "\t" . '}' . "\n";
 		} else {
@@ -1005,7 +1005,13 @@ class nginx extends HttpConfigBase
 		chown($access_log, Settings::Get('system.httpuser'));
 		chgrp($access_log, Settings::Get('system.httpgroup'));
 
-		$logfiles_text .= "\t" . 'access_log    ' . $access_log . ' combined;' . "\n";
+		$logtype = 'combined';
+		if (Settings::Get('system.logfiles_format') != '') {
+			$logtype = 'frx_custom';
+			$logfiles_text .= "\t" . 'log_format ' . $logtype . ' "' . Settings::Get('system.logfiles_format') . '";' . "\n";
+		}
+
+		$logfiles_text .= "\t" . 'access_log    ' . $access_log . ' ' . $logtype . ';' . "\n";
 		$logfiles_text .= "\t" . 'error_log    ' . $error_log . ' error;' . "\n";
 
 		if (Settings::Get('system.awstats_enabled') == '1') {

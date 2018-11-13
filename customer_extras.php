@@ -563,7 +563,7 @@ if ($page == 'overview') {
 			$existing_backupJob = null;
 			while ($entry = $sel_stmt->fetch())
 			{
-				$data = unserialize($entry['data']);
+				$data = json_decode($entry['data'], true);
 				if ($data['customerid'] == $userinfo['customerid']) {
 					$existing_backupJob = $entry;
 					break;
@@ -578,6 +578,11 @@ if ($page == 'overview') {
 
 				$path = makeCorrectDir(validate($_POST['path'], 'path'));
 				$path = makeCorrectDir($userinfo['documentroot'] . '/' . $path);
+
+				// path cannot be the customers docroot
+				if ($path == makeCorrectDir($userinfo['documentroot'])) {
+					standar_error('backupfoldercannotbedocroot');
+				}
 
 				$backup_dbs = isset($_POST['backup_dbs']) ? intval($_POST['backup_dbs']) : 0;
 				$backup_mail = isset($_POST['backup_mail']) ? intval($_POST['backup_mail']) : 0;
@@ -613,7 +618,7 @@ if ($page == 'overview') {
 
 				if (!empty($existing_backupJob)) {
 					$action = "abort";
-					$row = unserialize($entry['data']);
+					$row = json_decode($entry['data'], true);
 					$row['path'] = makeCorrectDir(str_replace($userinfo['documentroot'], "/", $row['destdir']));
 					$row['backup_web'] = ($row['backup_web'] == '1') ? $lng['panel']['yes'] : $lng['panel']['no'];
 					$row['backup_mail'] = ($row['backup_mail'] == '1') ? $lng['panel']['yes'] : $lng['panel']['no'];

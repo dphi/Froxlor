@@ -3947,3 +3947,130 @@ if (isFroxlorVersion('0.9.39.4')) {
 	showUpdateStep("Updating from 0.9.39.4 to 0.9.39.5", false);
 	updateToVersion('0.9.39.5');
 }
+
+if (isDatabaseVersion('201802130')) {
+
+	showUpdateStep("Adding fullchain field to ssl certificates");
+	Database::query("ALTER TABLE `" . TABLE_PANEL_DOMAIN_SSL_SETTINGS . "` ADD `ssl_fullchain_file` mediumtext AFTER `ssl_csr_file`;");
+	lastStepStatus(0);
+
+	updateToDbVersion('201802250');
+}
+
+if (isDatabaseVersion('201802250')) {
+
+	showUpdateStep("Adding webserver logfile settings");
+	Settings::AddNew("system.logfiles_format",  '');
+	Settings::AddNew("system.logfiles_type",  '1');
+	Settings::AddNew("system.logfiles_piped",  '0');
+	lastStepStatus(0);
+
+	updateToDbVersion('201805240');
+}
+
+if (isDatabaseVersion('201805240')) {
+
+	showUpdateStep("Adding webserver logfile-script settings");
+	Settings::AddNew("system.logfiles_script",  '');
+	lastStepStatus(0);
+
+	updateToDbVersion('201805241');
+}
+
+if (isDatabaseVersion('201805241')) {
+
+	$do_update = true;
+	showUpdateStep("Checking for required PHP json-extension");
+	if (! extension_loaded('json')) {
+		$do_update = false;
+		lastStepStatus(2, 'not installed');
+	} else {
+		lastStepStatus(0);
+
+		showUpdateStep("Checking for current cronjobs that need converting");
+		$result_tasks_stmt = Database::query("
+			SELECT * FROM `" . TABLE_PANEL_TASKS . "` ORDER BY `id` ASC
+		");
+		$upd_stmt = Database::prepare("UPDATE `" . TABLE_PANEL_TASKS . "` SET `data` = :data WHERE `id` = :taskid");
+		while ($row = $result_tasks_stmt->fetch(PDO::FETCH_ASSOC)) {
+			if (! empty($row['data'])) {
+				$data = unserialize($row['data']);
+				Database::pexecute($upd_stmt, array(
+					'data' => json_encode($data),
+					'taskid' => $row['id']
+				));
+			}
+		}
+		lastStepStatus(0);
+
+		updateToDbVersion('201805290');
+	}
+}
+
+if (isDatabaseVersion('201805290')) {
+
+	showUpdateStep("Adding leaccount field to panel customers");
+	Database::query("ALTER TABLE `" . TABLE_PANEL_CUSTOMERS . "` ADD COLUMN `leaccount` varchar(255) default '' AFTER `leregistered`;");
+	lastStepStatus(0);
+
+	showUpdateStep("Adding system setting for let's-encrypt account");
+	Settings::AddNew('system.leaccount', "");
+	lastStepStatus(0);
+
+	updateToDbVersion('201809180');
+}
+
+if (isDatabaseVersion('201809180')) {
+	
+	showUpdateStep("Adding new fields for php configs");
+	Database::query("ALTER TABLE `" . TABLE_PANEL_PHPCONFIGS . "` ADD `override_fpmconfig` tinyint(1) NOT NULL DEFAULT '0';");
+	Database::query("ALTER TABLE `" . TABLE_PANEL_PHPCONFIGS . "` ADD `pm` varchar(15) NOT NULL DEFAULT 'static';");
+	Database::query("ALTER TABLE `" . TABLE_PANEL_PHPCONFIGS . "` ADD `max_children` int(4) NOT NULL DEFAULT '1';");
+	Database::query("ALTER TABLE `" . TABLE_PANEL_PHPCONFIGS . "` ADD `start_servers` int(4) NOT NULL DEFAULT '20';");
+	Database::query("ALTER TABLE `" . TABLE_PANEL_PHPCONFIGS . "` ADD `min_spare_servers` int(4) NOT NULL DEFAULT '5';");
+	Database::query("ALTER TABLE `" . TABLE_PANEL_PHPCONFIGS . "` ADD `max_spare_servers` int(4) NOT NULL DEFAULT '35';");
+	Database::query("ALTER TABLE `" . TABLE_PANEL_PHPCONFIGS . "` ADD `max_requests` int(4) NOT NULL DEFAULT '0';");
+	Database::query("ALTER TABLE `" . TABLE_PANEL_PHPCONFIGS . "` ADD `idle_timeout` int(4) NOT NULL DEFAULT '30';");
+	Database::query("ALTER TABLE `" . TABLE_PANEL_PHPCONFIGS . "` ADD `limit_extensions` varchar(255) NOT NULL default '.php';");
+	lastStepStatus(0);
+	
+	showUpdateStep("Synchronize fpm-daemon process manager settings with php-configs");
+	// get all fpm-daemons
+	$sel_stmt = Database::prepare("SELECT * FROM `panel_fpmdaemons`;");
+	Database::pexecute($sel_stmt);
+	$fpm_daemons = $sel_stmt->fetchAll(PDO::FETCH_ASSOC);
+	$upd_stmt = Database::prepare("UPDATE `" . TABLE_PANEL_PHPCONFIGS . "` SET
+		`pm` = :pm,
+		`max_children` = :maxc,
+		`start_servers` = :starts,
+		`min_spare_servers` = :minss,
+		`max_spare_servers` = :maxss,
+		`max_requests` = :maxr,
+		`idle_timeout` = :it,
+		`limit_extensions` = :le
+		WHERE `fpmsettingid` = :fpmid
+	");
+	// update all php-configs with the pm data from the fpm-daemon
+	foreach ($fpm_daemons as $fpm_daemon) {
+		Database::pexecute($upd_stmt, array(
+			'pm' => $fpm_daemon['pm'],
+			'maxc' => $fpm_daemon['max_children'],
+			'starts' => $fpm_daemon['start_servers'],
+			'minss' => $fpm_daemon['min_spare_servers'],
+			'maxss' => $fpm_daemon['max_spare_servers'],
+			'maxr' => $fpm_daemon['max_requests'],
+			'it' => $fpm_daemon['idle_timeout'],
+			'le' => $fpm_daemon['limit_extensions'],
+			'fpmid' => $fpm_daemon['id']
+		));
+	}
+	lastStepStatus(0);
+	
+	updateToDbVersion('201809280');
+}
+
+if (isFroxlorVersion('0.9.39.5')) {
+
+	showUpdateStep("Updating from 0.9.39.5 to 0.9.40", false);
+	updateToVersion('0.9.40');
+}

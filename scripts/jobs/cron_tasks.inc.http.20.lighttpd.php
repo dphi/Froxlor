@@ -66,8 +66,8 @@ class lighttpd extends HttpConfigBase
 			foreach ($restart_cmds as $restart_cmd) {
 				// check whether the config dir is empty (no domains uses this daemon)
 				// so we need to create a dummy
-				$isDirEmpty = !(new \FilesystemIterator($restart_cmd['config_dir']))->valid();
-				if ($isDirEmpty) {
+				$_conffiles = glob(makeCorrectFile($restart_cmd['config_dir'] . "/*.conf"));
+				if ($_conffiles === false || empty($_conffiles)) {
 					$this->logger->logAction(CRON_ACTION, LOG_INFO, 'lighttpd::reload: fpm config directory "' . $restart_cmd['config_dir'] . '" is empty. Creating dummy.');
 					phpinterface_fpm::createDummyPool($restart_cmd['config_dir']);
 				}
@@ -466,7 +466,7 @@ class lighttpd extends HttpConfigBase
 			$uri = $domain['documentroot'];
 
 			// Get domain's redirect code
-			$code = getDomainRedirectCode($domain['id'], '301');
+			$code = getDomainRedirectCode($domain['id']);
 
 			$vhost_content .= '  url.redirect-code = ' . $code. "\n";
 			$vhost_content .= '  url.redirect = (' . "\n";

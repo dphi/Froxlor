@@ -1,6 +1,6 @@
 <tr <if !$isValid>class="domain-expired"</if>>
 	<td>
-		<a href="http://{$row['domain']}" target="_blank">{$row['domain']}</a>
+		<a href="https://{$row['domain']}" target="_blank">{$row['domain']}</a>
 		{$adminCustomerLink}
 	</td>
 	<td>
@@ -8,7 +8,7 @@
 		<if !empty($san_list)><br>SAN: {$san_list}</if>
 	</td>
 	<td>
-		{$cert_data['issuer']['O']}
+		<if isset($cert_data['issuer']['O']) && !empty($cert_data['issuer']['O'])>{$cert_data['issuer']['O']}</if>
 	</td>
 	<td>
 		{$validFrom}

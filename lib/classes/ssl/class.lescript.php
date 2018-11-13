@@ -80,6 +80,15 @@ class lescript
 					Settings::Set('system.lepublickey', $keys['public']);
 					Settings::Set('system.leprivatekey', $keys['private']);
 					Settings::Set('system.leregistered', 0); // key is not registered
+				} else {
+					$upd_stmt = Database::prepare("UPDATE `" . TABLE_PANEL_CUSTOMERS . "` SET `lepublickey` = :public, `leprivatekey` = :private, `leregistered` = :registered WHERE `customerid` = :customerid;");
+					Database::pexecute($upd_stmt, array(
+						'public' => $keys['public'],
+						'private' => $keys['private'],
+						'registered' => 0,
+						'customerid' => $this->customerId
+					));
+				}
 			}
 			$leregistered=0;
 			$this->accountKey = $keys['private'];
@@ -206,7 +215,7 @@ class lescript
 			// simple self check
 			if (Settings::Get('system.disable_le_selfcheck') == '0')
 			{
-				$selfcheckpayload = HttpClient::urlGet($uri);
+				$selfcheckpayload = HttpClient::urlGet($uri, false);
 				if ($payload !== trim($selfcheckpayload)) {
 					$errmsg = json_encode(error_get_last());
 					if ($errmsg != "null") {
@@ -329,7 +338,15 @@ class lescript
 	private function setLeRegisteredState($state)
 	{
 		if ($this->isLeProduction) {
-			Settings::Set('system.leregistered', $state);
+			if ($this->isFroxlorVhost) {
+				Settings::Set('system.leregistered', $state);
+			} else {
+				$upd_stmt = Database::prepare("UPDATE `" . TABLE_PANEL_CUSTOMERS . "` SET `leregistered` = :registered WHERE `customerid` = :customerid;");
+				Database::pexecute($upd_stmt, array(
+					'registered' => $state,
+					'customerid' => $this->customerId
+				));
+			}
 		}
 	}
 

@@ -43,6 +43,7 @@ class ConfigServicesCmd extends CmdLineHandler
 	public static $params = array(
 		'create',
 		'apply',
+		'import-settings',
 		'daemon',
 		'list-daemons',
 		'froxlor-dir',
@@ -60,13 +61,16 @@ class ConfigServicesCmd extends CmdLineHandler
 		self::println("--create\t\tlets you create a services list configuration for the 'apply' command");
 		self::println("");
 		self::println("--apply\t\t\tconfigure your services by given configuration file. To create one run the --create command");
-		self::println("\t\t\tExample: --apply=/path/to/my-config.json");
+		self::println("\t\t\tExample: --apply=/path/to/my-config.json or --apply=http://domain.tld/my-config.json");
 		self::println("");
 		self::println("--list-daemons\t\tOutput the services that are going to be configured using a given config file. No services will be configured.");
 		self::println("\t\t\tExample: --apply=/path/to/my-config.json --list-daemons");
 		self::println("");
 		self::println("--daemon\t\tWhen running --apply you can specify a daemon. This will be the only service that gets configured");
 		self::println("\t\t\tExample: --apply=/path/to/my-config.json --daemon=apache24");
+		self::println("");
+		self::println("--import-settings\tImport settings from another froxlor installation. This should be done prior to running --apply or alternatively in the same command together.");
+		self::println("\t\t\tExample: --import-settings=/path/to/Froxlor_settings-[version]-[dbversion]-[date].json or --import-settings=http://domain.tld/Froxlor_settings-[version]-[dbversion]-[date].json");
 		self::println("");
 		self::println("--froxlor-dir\t\tpath to froxlor installation");
 		self::println("\t\t\tExample: --froxlor-dir=/var/www/froxlor/");
@@ -115,9 +119,14 @@ class Action
 		require FROXLOR_INSTALL_DIR . '/lib/tables.inc.php';
 		require FROXLOR_INSTALL_DIR . '/lib/functions.php';
 		require FROXLOR_INSTALL_DIR . '/lib/classes/settings/class.Settings.php';
+		require FROXLOR_INSTALL_DIR . '/lib/classes/settings/class.SImExporter.php';
 		require FROXLOR_INSTALL_DIR . '/lib/classes/config/class.ConfigParser.php';
 		require FROXLOR_INSTALL_DIR . '/lib/classes/config/class.ConfigService.php';
 		require FROXLOR_INSTALL_DIR . '/lib/classes/config/class.ConfigDaemon.php';
+		
+		if (array_key_exists("import-settings", $this->_args)) {
+			$this->_importSettings();
+		}
 		
 		if (array_key_exists("create", $this->_args)) {
 			$this->_createConfig();
@@ -126,6 +135,29 @@ class Action
 		} elseif (array_key_exists("list-daemons", $this->_args) || array_key_exists("daemon", $this->_args)) {
 			CmdLineHandler::printwarn("--list-daemons and --daemon only work together with --apply");
 		}
+	}
+
+	private function _importSettings()
+	{
+		if (strtoupper(substr($this->_args["import-settings"], 0, 4)) == 'HTTP') {
+			echo "Settings file seems to be an URL, trying to download" . PHP_EOL;
+			$target = "/tmp/froxlor-import-settings-" . time() . ".json";
+			if (@file_exists($target)) {
+				@unlink($target);
+			}
+			$this->downloadFile($this->_args["import-settings"], $target);
+			$this->_args["import-settings"] = $target;
+		}
+		if (! is_file($this->_args["import-settings"])) {
+			throw new Exception("Given settings file is not a file");
+		} elseif (! file_exists($this->_args["import-settings"])) {
+			throw new Exception("Given settings file cannot be found ('" . $this->_args["import-settings"] . "')");
+		} elseif (! is_readable($this->_args["import-settings"])) {
+			throw new Exception("Given settings file cannot be read ('" . $this->_args["import-settings"] . "')");
+		}
+		$imp_content = file_get_contents($this->_args["import-settings"]);
+		SImExporter::import($imp_content);
+		CmdLineHandler::printsucc("Successfully imported settings from '" . $this->_args["import-settings"] . "'");
 	}
 
 	private function _createConfig()
@@ -237,6 +269,15 @@ class Action
 
 	private function _applyConfig()
 	{
+		if (strtoupper(substr($this->_args["apply"], 0, 4)) == 'HTTP') {
+			echo "Config file seems to be an URL, trying to download" . PHP_EOL;
+			$target = "/tmp/froxlor-config-" . time() . ".json";
+			if (@file_exists($target)) {
+				@unlink($target);
+			}
+			$this->downloadFile($this->_args["apply"], $target);
+			$this->_args["apply"] = $target;
+		}
 		if (! is_file($this->_args["apply"])) {
 			throw new Exception("Given config file is not a file");
 		} elseif (! file_exists($this->_args["apply"])) {
@@ -316,7 +357,7 @@ class Action
 							case "file":
 								if (array_key_exists('content', $action)) {
 									CmdLineHandler::printwarn("Creating file '" . $action['name'] . "'");
-									file_put_contents($action['name'], strtr($action['content'], $replace_arr));
+									file_put_contents($action['name'], trim(strtr($action['content'], $replace_arr)));
 								} elseif (array_key_exists('subcommands', $action)) {
 									foreach ($action['subcommands'] as $fileaction) {
 										if (array_key_exists('execute', $fileaction) && $fileaction['execute'] == "pre") {
@@ -325,7 +366,7 @@ class Action
 											exec(strtr($fileaction['content'], $replace_arr));
 										} elseif ($fileaction['type'] == 'file') {
 											CmdLineHandler::printwarn("Creating file '" . $fileaction['name'] . "'");
-											file_put_contents($fileaction['name'], strtr($fileaction['content'], $replace_arr));
+											file_put_contents($fileaction['name'], trim(strtr($fileaction['content'], $replace_arr)));
 										}
 									}
 								}
@@ -334,6 +375,9 @@ class Action
 					}
 				}
 			}
+			// run cronjob at the end to ensure configs are all up to date
+			exec('php ' . FROXLOR_INSTALL_DIR . '/scripts/froxlor_master_cronjob.php --force');
+			// and done
 			CmdLineHandler::printsucc("All services have been configured");
 		} else {
 			CmdLineHandler::printerr("Unable to decode given JSON file");
@@ -416,6 +460,24 @@ class Action
 				throw new Exception("Given froxlor direcotry cannot be read ('" . $this->_args["froxlor-dir"] . "')");
 			}
 		}
+	}
+
+	private function downloadFile($src, $dest)
+	{
+		set_time_limit(0);
+		// This is the file where we save the information
+		$fp = fopen($dest, 'w+');
+		// Here is the file we are downloading, replace spaces with %20
+		$ch = curl_init(str_replace(" ", "%20", $src));
+		curl_setopt($ch, CURLOPT_TIMEOUT, 50);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		// write curl response to file
+		curl_setopt($ch, CURLOPT_FILE, $fp);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		// get curl response
+		curl_exec($ch);
+		curl_close($ch);
+		fclose($fp);
 	}
 }
 

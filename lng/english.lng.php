@@ -229,6 +229,7 @@ $lng['error']['destinationalreadyexistasmail'] = 'The forwarder to %s already ex
 $lng['error']['destinationalreadyexist'] = 'You have already defined a forwarder to %s .';
 $lng['error']['destinationiswrong'] = 'The forwarder %s contains invalid character(s) or is incomplete.';
 $lng['error']['ticketnotaccessible'] = 'You cannot access this ticket.';
+$lng['error']['backupfoldercannotbedocroot'] = 'The folder for backups cannot be your homedir, please chose a folder within your homedir, e.g. /backups';
 
 /**
  * Questions
@@ -337,6 +338,14 @@ $lng['serversettings']['documentroot_prefix']['title'] = 'Home directory';
 $lng['serversettings']['documentroot_prefix']['description'] = 'Where should all home directories be stored?';
 $lng['serversettings']['logfiles_directory']['title'] = 'Logfiles directory';
 $lng['serversettings']['logfiles_directory']['description'] = 'Where should all log files be stored?';
+$lng['serversettings']['logfiles_script']['title'] = 'Custom script to pipe log-files to';
+$lng['serversettings']['logfiles_script']['description'] = 'You can specify a script here and use the placeholders <strong>{LOGFILE}, {DOMAIN} and {CUSTOMER}</strong> if needed. In case you want to use it you will need to activate the <strong>Pipe webserver logfiles</strong> option too. No prefixed pipe-character is needed.';
+$lng['serversettings']['logfiles_format']['title'] = 'Access-log format';
+$lng['serversettings']['logfiles_format']['description'] = 'Enter a custom log-format here according to your webservers specifications, leave empty for default';
+$lng['serversettings']['logfiles_type']['title'] = 'Access-log type';
+$lng['serversettings']['logfiles_type']['description'] = 'Chose between <strong>combined</strong> or <strong>vhost_combined</strong> here.';
+$lng['serversettings']['logfiles_piped']['title'] = 'Pipe webserver logfiles to specified script (see above)';
+$lng['serversettings']['logfiles_piped']['description'] = 'When using a custom script for the logfiles you need to activate this in order for it to be executed';
 $lng['serversettings']['ipaddress']['title'] = 'IP-address';
 $lng['serversettings']['ipaddress']['description'] = 'What\'s the main IP-address of this server?';
 $lng['serversettings']['hostname']['title'] = 'Hostname';
@@ -508,8 +517,8 @@ $lng['changepassword']['also_change_webalizer'] = ' also change password for the
 
 $lng['serversettings']['mailpwcleartext']['title'] = 'Also save passwords of mail accounts unencrypted in database';
 $lng['serversettings']['mailpwcleartext']['description'] = 'If this is set to yes, all passwords will also be saved unencrypted (clear text, plain readable for everyone with database access) in the mail_users-table. Only activate this if you intend to use SASL!';
-$lng['serversettings']['mailpwcleartext']['removelink'] = 'Click here to wipe all unencrypted passwords from the table.';
-$lng['question']['admin_cleartextmailpws_reallywipe'] = 'Do you really want to wipe all unencrypted mail account passwords from the table mail_users? This cannot be reverted!';
+$lng['admin']['wipecleartextmailpwd'] = 'Clear plaintext passwords';
+$lng['question']['admin_cleartextmailpws_reallywipe'] = 'Do you really want to wipe all unencrypted mail account passwords from the table mail_users? This cannot be reverted! The setting to store email passwords unencrypted will also be set to OFF';
 $lng['admin']['configfiles']['overview'] = 'Overview';
 $lng['admin']['configfiles']['wizard'] = 'Wizard';
 $lng['admin']['configfiles']['distribution'] = 'Distribution';
@@ -1648,7 +1657,7 @@ $lng['admin']['usedmax'] = 'Used / Max';
 $lng['admin']['used'] = 'Used';
 $lng['mysql']['size'] = 'Size';
 
-$lng['error']['invalidhostname'] = 'Hostname can\'t be empty nor can it consist only of whitespaces';
+$lng['error']['invalidhostname'] = 'Hostname needs to be avalid domain. It can\'t be empty nor can it consist only of whitespaces';
 
 $lng['traffic']['http'] = 'HTTP (MiB)';
 $lng['traffic']['ftp'] = 'FTP (MiB)';
@@ -2119,3 +2128,8 @@ $lng['admin']['notryfiles']['description'] = 'Say yes here if you want to specif
 // added for SRAUM
 $lng['serversettings']['mod_fcgid']['username_prefix']['title'] = 'Prefix added to the username';
 $lng['serversettings']['mod_fcgid']['username_prefix']['description'] = 'This setting avoids username collisions.';
+
+$lng['serversettings']['phpfpm_settings']['override_fpmconfig'] = 'Override FPM-daemon settings (pm, max_children, etc.)';
+$lng['serversettings']['phpfpm_settings']['override_fpmconfig_addinfo'] = '<br /><span class="red">Only used if "Override FPM-daemon settings" is set to "Yes"</span>';
+$lng['panel']['backuppath']['title'] = 'Destination path for the backup';
+$lng['panel']['backuppath']['description'] = 'This is the path where the backups will be stored. If backup of web-data is selected, all files from the homedir are stored excluding the backup-folder specified here.';
