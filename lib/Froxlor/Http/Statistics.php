@@ -105,8 +105,8 @@ class Statistics
 
 		// get correct user
 		if ((Settings::Get('system.mod_fcgid') == '1' || Settings::Get('phpfpm.enabled') == '1') && isset($row['deactivated']) && $row['deactivated'] == '0') {
-			$user = $row['loginname'];
-			$group = $row['loginname'];
+			$user = 'web' . $row['loginname'];
+			$group = 'web' . $row['loginname'];
 		} else {
 			$user = $row['guid'];
 			$group = $row['guid'];

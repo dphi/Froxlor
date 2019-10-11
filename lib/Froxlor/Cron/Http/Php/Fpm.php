@@ -127,8 +127,8 @@ class Fpm
 				$fpm_config .= 'listen.owner = ' . $this->domain['guid'] . "\n";
 				$fpm_config .= 'listen.group = ' . $this->domain['guid'] . "\n";
 			} else {
-				$fpm_config .= 'listen.owner = ' . $this->domain['loginname'] . "\n";
-				$fpm_config .= 'listen.group = ' . $this->domain['loginname'] . "\n";
+				$fpm_config .= 'listen.owner = ' . 'web' . $this->domain['loginname'] . "\n";
+				$fpm_config .= 'listen.group = ' . 'web' . $this->domain['loginname'] . "\n";
 			}
 			// see #1418 why this is 0660
 			$fpm_config .= 'listen.mode = 0660' . "\n";
@@ -137,8 +137,8 @@ class Fpm
 				$fpm_config .= 'user = ' . $this->domain['guid'] . "\n";
 				$fpm_config .= 'group = ' . $this->domain['guid'] . "\n";
 			} else {
-				$fpm_config .= 'user = ' . $this->domain['loginname'] . "\n";
-				$fpm_config .= 'group = ' . $this->domain['loginname'] . "\n";
+				$fpm_config .= 'user = ' . 'web' . $this->domain['loginname'] . "\n";
+				$fpm_config .= 'group = ' . 'web' . $this->domain['loginname'] . "\n";
 			}
 
 			$fpm_config .= 'pm = ' . $fpm_pm . "\n";
@@ -312,7 +312,7 @@ class Fpm
 
 		if (! is_dir($socketdir) && $createifnotexists) {
 			\Froxlor\FileDir::safe_exec('mkdir -p ' . escapeshellarg($socketdir));
-			\Froxlor\FileDir::safe_exec('chown -R ' . Settings::Get('system.httpuser') . ':' . Settings::Get('system.httpgroup') . ' ' . escapeshellarg($socketdir));
+			\Froxlor\FileDir::safe_exec('chown -R ' . 'web' . Settings::Get('system.httpuser') . ':' . 'web' . Settings::Get('system.httpgroup') . ' ' . escapeshellarg($socketdir));
 		}
 
 		return $socket;
