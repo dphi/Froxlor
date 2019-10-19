@@ -262,6 +262,8 @@ class SubDomains extends \Froxlor\Api\ApiCommand implements \Froxlor\Api\Resourc
 				`openbasedir_path` = :openbasedir_path,
 				`speciallogfile` = :speciallogfile,
 				`specialsettings` = :specialsettings,
+				`ssl_specialsettings` = :ssl_specialsettings,
+				`include_specialsettings` = :include_specialsettings,
 				`ssl_redirect` = :ssl_redirect,
 				`phpsettingid` = :phpsettingid,
 				`letsencrypt` = :letsencrypt,
@@ -285,6 +287,8 @@ class SubDomains extends \Froxlor\Api\ApiCommand implements \Froxlor\Api\Resourc
 				"phpenabled" => $domain_check['phpenabled'],
 				"speciallogfile" => $domain_check['speciallogfile'],
 				"specialsettings" => $domain_check['specialsettings'],
+				"ssl_specialsettings" => $domain_check['ssl_specialsettings'],
+				"include_specialsettings" => $domain_check['include_specialsettings'],
 				"ssl_redirect" => $ssl_redirect,
 				"phpsettingid" => $phpsid_result['phpsettingid'],
 				"letsencrypt" => $letsencrypt,
@@ -564,14 +568,9 @@ class SubDomains extends \Froxlor\Api\ApiCommand implements \Froxlor\Api\Resourc
 			}
 		}
 
-		// We can't enable let's encrypt for wildcard - domains when using acme-v1
-		if ($iswildcarddomain == '1' && $letsencrypt == '1' && Settings::Get('system.leapiversion') == '1') {
+		// We can't enable let's encrypt for wildcard-domains
+		if ($iswildcarddomain == '1' && $letsencrypt == '1') {
 			\Froxlor\UI\Response::standard_error('nowildcardwithletsencrypt');
-		}
-		// if using acme-v2 we cannot issue wildcard-certificates
-		// because they currently only support the dns-01 challenge
-		if ($iswildcarddomain == '1' && $letsencrypt == '1' && Settings::Get('system.leapiversion') == '2') {
-			\Froxlor\UI\Response::standard_error('nowildcardwithletsencryptv2');
 		}
 
 		// Temporarily deactivate ssl_redirect until Let's Encrypt certificate was generated
