@@ -285,7 +285,7 @@ class Nginx extends HttpConfigBase
 
 				if (! $is_redirect) {
 					$this->nginx_data[$vhost_filename] .= "\tlocation ~ \.php {\n";
-					$this->nginx_data[$vhost_filename] .= "\t\tfastcgi_split_path_info ^(.+\.php)(/.+)\$;\n";
+					$this->nginx_data[$vhost_filename] .= "\t\tfastcgi_split_path_info ^(.+?\.php)(/.*)$;\n";
 					$this->nginx_data[$vhost_filename] .= "\t\tinclude " . Settings::Get('nginx.fastcgiparams') . ";\n";
 					$this->nginx_data[$vhost_filename] .= "\t\tfastcgi_param SCRIPT_FILENAME \$request_filename;\n";
 					$this->nginx_data[$vhost_filename] .= "\t\tfastcgi_param PATH_INFO \$fastcgi_path_info;\n";
@@ -678,10 +678,14 @@ class Nginx extends HttpConfigBase
 			if (! file_exists($domain_or_ip['ssl_cert_file'])) {
 				\Froxlor\FroxlorLogger::getInstanceOf()->logAction(\Froxlor\FroxlorLogger::CRON_ACTION, LOG_ERR, $domain_or_ip['domain'] . ' :: certificate file "' . $domain_or_ip['ssl_cert_file'] . '" does not exist! Cannot create ssl-directives');
 			} else {
+
+				$ssl_protocols = (isset($domain_or_ip['override_tls']) && $domain_or_ip['override_tls'] == '1' && ! empty($domain_or_ip['ssl_protocols'])) ? $domain_or_ip['ssl_protocols'] : Settings::Get('system.ssl_protocols');
+				$ssl_cipher_list = (isset($domain_or_ip['override_tls']) && $domain_or_ip['override_tls'] == '1' && ! empty($domain_or_ip['ssl_cipher_list'])) ? $domain_or_ip['ssl_cipher_list'] : Settings::Get('system.ssl_cipher_list');
+
 				// obsolete: ssl on now belongs to the listen block as 'ssl' at the end
 				// $sslsettings .= "\t" . 'ssl on;' . "\n";
-				$sslsettings .= "\t" . 'ssl_protocols ' . str_replace(",", " ", Settings::Get('system.ssl_protocols')) . ';' . "\n";
-				$sslsettings .= "\t" . 'ssl_ciphers ' . Settings::Get('system.ssl_cipher_list') . ';' . "\n";
+				$sslsettings .= "\t" . 'ssl_protocols ' . str_replace(",", " ", $ssl_protocols) . ';' . "\n";
+				$sslsettings .= "\t" . 'ssl_ciphers ' . $ssl_cipher_list . ';' . "\n";
 				if (! empty(Settings::Get('system.dhparams_file'))) {
 					$dhparams = \Froxlor\FileDir::makeCorrectFile(Settings::Get('system.dhparams_file'));
 					if (! file_exists($dhparams)) {
@@ -951,7 +955,7 @@ class Nginx extends HttpConfigBase
 			$phpopts .= "\t" . '}' . "\n\n";
 
 			$phpopts .= "\tlocation @php {\n";
-			$phpopts .= "\t\tfastcgi_split_path_info ^(.+\.php)(/.+)\$;\n";
+			$phpopts .= "\t\tfastcgi_split_path_info ^(.+?\.php)(/.*)$;\n";
 			$phpopts .= "\t\tinclude " . Settings::Get('nginx.fastcgiparams') . ";\n";
 			$phpopts .= "\t\tfastcgi_param SCRIPT_FILENAME \$request_filename;\n";
 			$phpopts .= "\t\tfastcgi_param PATH_INFO \$fastcgi_path_info;\n";
